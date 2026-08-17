@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KaterOnyx FFA for Senpa
 // @namespace    https://kateronyx.local/ffa
-// @version      2.0.0
+// @version      2.0.1
 // @description  Loads the full ONYX engine (deo.onyx + PIXI + WASM create) on Senpa's official origin.
 // @author       KaterOnyx
 // @match        https://senpa.io/*
@@ -27,7 +27,7 @@
 
   var DEFAULT_BASE_URL = 'https://onyx-og.vercel.app/';
   var CLIENT_FILE = 'index.html';
-  var VERSION = '2.0.0';
+  var VERSION = '2.0.1';
   var MOUNT_KEY = 'kateronyx:mounting';
   var LOCAL_CSS = [
     'assets/css/albion.css',
@@ -434,14 +434,13 @@
     var adapterJs = await gmGet(baseUrl + 'onyx-ffa-adapter.js?v=' + v);
     var uiJs = await gmGet(baseUrl + 'onyx-ui.js?v=' + v);
 
-    var cdnTexts = [];
-    for (var c = 0; c < CDN_SCRIPTS.length; c++) {
-      try {
-        cdnTexts.push([CDN_SCRIPTS[c][1], await gmGet(CDN_SCRIPTS[c][0])]);
-      } catch (err) {
-        throw new Error('CDN script failed (' + CDN_SCRIPTS[c][1] + '): ' + (err && err.message || err));
-      }
-    }
+    var cdnTexts = await Promise.all(CDN_SCRIPTS.map(function (item) {
+      return gmGet(item[0]).then(function (text) {
+        return [item[1], text];
+      }).catch(function (err) {
+        throw new Error('CDN script failed (' + item[1] + '): ' + (err && err.message || err));
+      });
+    }));
 
     var cssPairs = await Promise.all(cssGets);
     var fontBlob = fontBuf ? URL.createObjectURL(new Blob([fontBuf], { type: 'font/woff' })) : '';
