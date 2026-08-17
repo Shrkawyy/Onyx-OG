@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JaxxV6 for Senpa
 // @namespace    https://github.com/Shrkawyy/t3st
-// @version      6.1.9
+// @version      6.1.10
 // @description  Loads the JaxxV6 client on Senpa's official web origin.
 // @author       Shrkawyy
 // @match        https://senpa.io/web/*
@@ -9,18 +9,19 @@
 // @run-at       document-start
 // @grant        GM_xmlhttpRequest
 // @grant        GM_info
+// @connect      onyx-og.vercel.app
 // @connect      shrkawyy.github.io
 // @noframes
-// @updateURL    https://shrkawyy.github.io/t3st/jaxxv6.user.js
-// @downloadURL  https://shrkawyy.github.io/t3st/jaxxv6.user.js
+// @updateURL    https://onyx-og.vercel.app/ffa/jaxxv6.user.js
+// @downloadURL  https://onyx-og.vercel.app/ffa/jaxxv6.user.js
 // ==/UserScript==
 
 (function () {
   'use strict';
 
-  const DEFAULT_BASE_URL = 'https://shrkawyy.github.io/t3st/';
+  const DEFAULT_BASE_URL = 'https://onyx-og.vercel.app/ffa/';
   const CLIENT_FILE = 'client.html';
-  const VERSION = '6.1.9';
+  const VERSION = '6.1.10';
 
   function normalizeBaseUrl(value) {
     try {
