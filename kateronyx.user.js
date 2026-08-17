@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KaterOnyx FFA for Senpa
 // @namespace    https://kateronyx.local/ffa
-// @version      2.0.1
+// @version      2.0.2
 // @description  Loads the full ONYX engine (deo.onyx + PIXI + WASM create) on Senpa's official origin.
 // @author       KaterOnyx
 // @match        https://senpa.io/*
@@ -27,7 +27,7 @@
 
   var DEFAULT_BASE_URL = 'https://onyx-og.vercel.app/';
   var CLIENT_FILE = 'index.html';
-  var VERSION = '2.0.1';
+  var VERSION = '2.0.2';
   var MOUNT_KEY = 'kateronyx:mounting';
   var LOCAL_CSS = [
     'assets/css/albion.css',
@@ -416,23 +416,39 @@
     });
 
     var v = encodeURIComponent(VERSION);
-    var html = await gmGet(baseUrl + CLIENT_FILE + '?v=' + v);
-    var wasm = await gmGet(baseUrl + '899.wasm?v=' + v, 'arraybuffer');
-    var wasm89 = await gmGet(baseUrl + '89.wasm?v=' + v, 'arraybuffer');
-    var fontBuf = null;
-    try { fontBuf = await gmGet(baseUrl + 'assets/ryuten/iconfont.woff?v=' + v, 'arraybuffer'); } catch (err) {
-      console.warn('[ONYX] iconfont.woff skipped', err && err.message || err);
-    }
-    var libJs = await gmGet(baseUrl + 'assets/js/lib.js?v=' + v);
-    var runtimeJs = await gmGet(baseUrl + 'assets/js/runtime.58908f3dbdb804a00215.js?v=' + v);
-    var vendorsJs = await gmGet(baseUrl + 'assets/js/vendors.c173b9063bd6941f8bc0.js?v=' + v);
-    var authJs = await gmGet(baseUrl + 'onyx-senpa-auth.js?v=' + v);
-    var customJs = await gmGet(baseUrl + 'onyx-custom.js?v=' + v);
-    var soundsJs = await gmGet(baseUrl + 'assets/js/ryuten-sounds.js?v=' + v);
-    var deoJs = await gmGet(baseUrl + 'deo.onyx.beautified.js?v=' + v);
-    var extrasJs = await gmGet(baseUrl + 'assets/js/ryuten-extras.js?v=' + v);
-    var adapterJs = await gmGet(baseUrl + 'onyx-ffa-adapter.js?v=' + v);
-    var uiJs = await gmGet(baseUrl + 'onyx-ui.js?v=' + v);
+    var baseGets = await Promise.all([
+      gmGet(baseUrl + CLIENT_FILE + '?v=' + v),
+      gmGet(baseUrl + '899.wasm?v=' + v, 'arraybuffer'),
+      gmGet(baseUrl + '89.wasm?v=' + v, 'arraybuffer'),
+      gmGet(baseUrl + 'assets/ryuten/iconfont.woff?v=' + v, 'arraybuffer').catch(function (err) {
+        console.warn('[ONYX] iconfont.woff skipped', err && err.message || err);
+        return null;
+      }),
+      gmGet(baseUrl + 'assets/js/lib.js?v=' + v),
+      gmGet(baseUrl + 'assets/js/runtime.58908f3dbdb804a00215.js?v=' + v),
+      gmGet(baseUrl + 'assets/js/vendors.c173b9063bd6941f8bc0.js?v=' + v),
+      gmGet(baseUrl + 'onyx-senpa-auth.js?v=' + v),
+      gmGet(baseUrl + 'onyx-custom.js?v=' + v),
+      gmGet(baseUrl + 'assets/js/ryuten-sounds.js?v=' + v),
+      gmGet(baseUrl + 'deo.onyx.beautified.js?v=' + v),
+      gmGet(baseUrl + 'assets/js/ryuten-extras.js?v=' + v),
+      gmGet(baseUrl + 'onyx-ffa-adapter.js?v=' + v),
+      gmGet(baseUrl + 'onyx-ui.js?v=' + v)
+    ]);
+    var html = baseGets[0];
+    var wasm = baseGets[1];
+    var wasm89 = baseGets[2];
+    var fontBuf = baseGets[3];
+    var libJs = baseGets[4];
+    var runtimeJs = baseGets[5];
+    var vendorsJs = baseGets[6];
+    var authJs = baseGets[7];
+    var customJs = baseGets[8];
+    var soundsJs = baseGets[9];
+    var deoJs = baseGets[10];
+    var extrasJs = baseGets[11];
+    var adapterJs = baseGets[12];
+    var uiJs = baseGets[13];
 
     var cdnTexts = await Promise.all(CDN_SCRIPTS.map(function (item) {
       return gmGet(item[0]).then(function (text) {
