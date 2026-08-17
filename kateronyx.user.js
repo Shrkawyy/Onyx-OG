@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KaterOnyx FFA for Senpa
 // @namespace    https://kateronyx.local/ffa
-// @version      1.9.9
+// @version      2.0.0
 // @description  Loads the full ONYX engine (deo.onyx + PIXI + WASM create) on Senpa's official origin.
 // @author       KaterOnyx
 // @match        https://senpa.io/*
@@ -17,15 +17,17 @@
 // @connect      unpkg.com
 // @connect      cdn.rawgit.com
 // @connect      *
+// @updateURL    https://onyx-og.vercel.app/kateronyx.user.js
+// @downloadURL  https://onyx-og.vercel.app/kateronyx.user.js
 // @noframes
 // ==/UserScript==
 
 (function () {
   'use strict';
 
-  var DEFAULT_BASE_URL = 'http://127.0.0.1:4173/';
+  var DEFAULT_BASE_URL = 'https://onyx-og.vercel.app/';
   var CLIENT_FILE = 'index.html';
-  var VERSION = '1.9.9';
+  var VERSION = '2.0.0';
   var MOUNT_KEY = 'kateronyx:mounting';
   var LOCAL_CSS = [
     'assets/css/albion.css',
