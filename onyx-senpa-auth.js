@@ -161,6 +161,7 @@
       '#onyx-game-auth button{border:0;border-radius:8px;padding:9px 12px;cursor:pointer;font:600 12px/1 Segoe UI,system-ui,sans-serif}',
       '#onyx-game-auth .login{background:#3b82f6;color:#fff}',
       '#onyx-game-auth .auth-discord-btn{background:#5865F2}',
+      '#onyx-game-auth .auth-facebook-btn{background:#1877F2}',
       '#onyx-game-auth .copy{background:#1e2633;color:#d7dee9}',
       '#onyx-game-auth .logout{background:#3a1d1d;color:#ffb4b4}',
       '#onyx-game-auth .close{background:#1e2633;color:#d7dee9;margin-left:auto}',
@@ -191,6 +192,7 @@
         '<textarea class="auth-token-input" placeholder="Paste Senpa auth token here" spellcheck="false"></textarea>' +
         '<div class="row">' +
           '<button type="button" class="login auth-discord-btn">Login with Discord</button>' +
+          '<button type="button" class="login auth-facebook-btn">Login with Facebook</button>' +
           '<button type="button" class="login auth-login-btn">LOGIN (paste)</button>' +
           '<button type="button" class="copy auth-copy-helper">Copy helper</button>' +
           '<button type="button" class="logout auth-logout-btn">Logout</button>' +
@@ -272,18 +274,26 @@
       if (e.target === panel) close();
     });
 
-    panel.querySelector('.auth-discord-btn').addEventListener('click', function () {
+    function openOAuth(provider, title, label) {
       var popup = window.open(
-        AUTH_ORIGIN + '/auth/discord',
-        'Senpa Discord Login',
+        AUTH_ORIGIN + '/auth/' + provider,
+        title,
         'toolbar=no,menubar=no,width=600,height=700,top=100,left=100'
       );
       if (!popup) {
         setStatus('Popup blocked. Allow popups or paste a token.', 'err');
         return;
       }
-      setStatus('Complete Senpa Discord login in the popup…', '');
+      setStatus('Complete Senpa ' + label + ' login in the popup…', '');
       try { popup.focus(); } catch (_) {}
+    }
+
+    panel.querySelector('.auth-discord-btn').addEventListener('click', function () {
+      openOAuth('discord', 'Senpa Discord Login', 'Discord');
+    });
+
+    panel.querySelector('.auth-facebook-btn').addEventListener('click', function () {
+      openOAuth('facebook', 'Senpa Facebook Login', 'Facebook');
     });
 
     panel.querySelector('.auth-login-btn').addEventListener('click', function () {
