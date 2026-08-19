@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KaterOnyx FFA for Senpa
 // @namespace    https://kateronyx.local/ffa
-// @version      2.0.1
+// @version      2.1.0
 // @description  Loads the full ONYX engine (deo.onyx + PIXI + WASM create) on Senpa's official origin.
 // @author       KaterOnyx
 // @match        https://senpa.io/*
@@ -27,8 +27,10 @@
 
   var DEFAULT_BASE_URL = 'https://onyx-og.vercel.app/';
   var CLIENT_FILE = 'index.html';
-  var VERSION = '2.0.1';
+  var VERSION = '2.1.0';
   var MOUNT_KEY = 'kateronyx:mounting';
+  var LICENSE_KEY = 'tm_key';
+  var LICENSE_VERIFY_URL = 'https://onyxadmin-npam4ilu.manus.space/api/verify-key';
   var LOCAL_CSS = [
     'assets/css/albion.css',
     'assets/css/onyx-theme.css',
@@ -217,6 +219,126 @@
       'body{visibility:hidden!important}' +
       "html::before{content:'Loading ONYX...';position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;background:#05060c;color:#22d3ee;font:700 18px Rajdhani,system-ui,sans-serif;letter-spacing:.2em;visibility:visible}";
     (document.head || document.documentElement).appendChild(style);
+  }
+
+  function readLicenseKey() {
+    try { return (localStorage.getItem(LICENSE_KEY) || '').trim(); } catch (_) { return ''; }
+  }
+  function saveLicenseKey(key) {
+    try { localStorage.setItem(LICENSE_KEY, key); } catch (_) {}
+  }
+  function clearLicenseKey() {
+    try { localStorage.removeItem(LICENSE_KEY); } catch (_) {}
+  }
+  function verifyLicenseKey(key) {
+    return new Promise(function (resolve, reject) {
+      GM_xmlhttpRequest({
+        method: 'POST',
+        url: LICENSE_VERIFY_URL,
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        data: JSON.stringify({ key: key }),
+        timeout: 15000,
+        onload: function (response) {
+          var data = {};
+          try { data = JSON.parse(response.responseText || '{}'); } catch (_) {}
+          if (response.status >= 200 && response.status < 300 && data.ok) {
+            resolve(true);
+            return;
+          }
+          reject(new Error(data.error || 'المفتاح غير صحيح أو منتهي الصلاحية.'));
+        },
+        onerror: function () { reject(new Error('تعذر الاتصال بخادم التحقق من المفتاح.')); },
+        ontimeout: function () { reject(new Error('انتهت مهلة التحقق من المفتاح.')); }
+      });
+    });
+  }
+  function requestLicense() {
+    var existing = readLicenseKey();
+    if (existing) {
+      return verifyLicenseKey(existing).catch(function () {
+        clearLicenseKey();
+        return openLicenseDialog('المفتاح المحفوظ غير صالح؛ أدخل مفتاحًا جديدًا.');
+      });
+    }
+    return openLicenseDialog('أدخل مفتاح الدخول للمتابعة.');
+  }
+  function openLicenseDialog(initialMessage) {
+    return new Promise(function (resolve) {
+      var overlay = document.createElement('div');
+      var style = document.createElement('style');
+      var panel = document.createElement('section');
+      var title = document.createElement('h1');
+      var subtitle = document.createElement('p');
+      var form = document.createElement('form');
+      var input = document.createElement('input');
+      var actions = document.createElement('div');
+      var submit = document.createElement('button');
+      var status = document.createElement('p');
+      style.textContent =
+        '#kateronyx-license-gate{position:fixed;z-index:2147483647;inset:0;display:grid;place-items:center;padding:20px;background:rgba(5,6,12,.97);color:#e8eef6;font:16px/1.5 system-ui,sans-serif;visibility:visible!important}' +
+        '#kateronyx-license-gate .license-panel{width:min(440px,100%);padding:30px;border:1px solid #29445c;border-radius:18px;background:linear-gradient(145deg,#111b2a,#0a101a);box-shadow:0 20px 80px rgba(0,0,0,.55);text-align:center}' +
+        '#kateronyx-license-gate h1{margin:0 0 8px;color:#49dcff;font-size:30px;letter-spacing:.08em}' +
+        '#kateronyx-license-gate .license-subtitle{margin:0 0 22px;color:#9db0c3}' +
+        '#kateronyx-license-gate input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #35526b;border-radius:9px;background:#070c13;color:#fff;font:inherit;outline:none;text-align:center}' +
+        '#kateronyx-license-gate input:focus{border-color:#49dcff;box-shadow:0 0 0 3px rgba(73,220,255,.14)}' +
+        '#kateronyx-license-gate .license-actions{display:flex;gap:10px;margin-top:14px}' +
+        '#kateronyx-license-gate button{flex:1;padding:12px;border:0;border-radius:9px;background:linear-gradient(135deg,#49dcff,#2389ff);color:#00131b;font:800 15px system-ui,sans-serif;cursor:pointer}' +
+        '#kateronyx-license-gate .license-status{min-height:24px;margin:14px 0 0;color:#ffbe55;font-size:13px}' +
+        '#kateronyx-license-gate .license-status.error{color:#ff7187}';
+      overlay.id = 'kateronyx-license-gate';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      panel.className = 'license-panel';
+      title.textContent = 'ONYX ACCESS';
+      subtitle.className = 'license-subtitle';
+      subtitle.textContent = 'المفتاح مطلوب لتشغيل الإضافة.';
+      input.type = 'password';
+      input.name = 'license-key';
+      input.autocomplete = 'off';
+      input.placeholder = 'License key';
+      input.required = true;
+      submit.type = 'submit';
+      submit.textContent = 'VERIFY KEY';
+      status.className = 'license-status';
+      status.textContent = initialMessage || '';
+      actions.className = 'license-actions';
+      actions.appendChild(submit);
+      form.appendChild(input);
+      form.appendChild(actions);
+      panel.appendChild(title);
+      panel.appendChild(subtitle);
+      panel.appendChild(form);
+      panel.appendChild(status);
+      overlay.appendChild(style);
+      overlay.appendChild(panel);
+      (document.body || document.documentElement).appendChild(overlay);
+      input.focus();
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var key = input.value.trim();
+        if (!key) {
+          status.className = 'license-status error';
+          status.textContent = 'اكتب المفتاح أولًا.';
+          input.focus();
+          return;
+        }
+        submit.disabled = true;
+        submit.textContent = 'CHECKING...';
+        status.className = 'license-status';
+        status.textContent = 'جارٍ التحقق من المفتاح...';
+        verifyLicenseKey(key).then(function () {
+          saveLicenseKey(key);
+          overlay.remove();
+          resolve(true);
+        }).catch(function (error) {
+          submit.disabled = false;
+          submit.textContent = 'VERIFY KEY';
+          status.className = 'license-status error';
+          status.textContent = error && error.message ? error.message : 'فشل التحقق من المفتاح.';
+          input.select();
+        });
+      });
+    });
   }
 
   function renderError(message) {
@@ -496,7 +618,11 @@
   seizePage();
   var baseUrl = getBaseUrl();
   renderLoading();
-  mount(baseUrl).catch(function (error) {
+  requestLicense().then(function () {
+    mount(baseUrl).catch(function (error) {
+      renderError(error && error.message ? error.message : error);
+    });
+  }).catch(function (error) {
     renderError(error && error.message ? error.message : error);
   });
 })();
