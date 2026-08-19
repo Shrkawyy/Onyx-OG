@@ -41,6 +41,17 @@
   }
 
   /* 2) Paleta GOLD/amber e ryuten për pamjen in-game (çelësat = id-të e theme-it) */
+  /* Show nicknames after the server/client update; preserve all other settings. */
+  function ensureNameSettings() {
+    var flag = PREFIX + 'nameVisibilityV1';
+    try { if (localStorage.getItem(flag) === '1') return; } catch (_) {}
+    var s = readJSON(SETTINGS_KEY);
+    s.hideOwnNick = 'off';
+    s.autoHideText = 'off';
+    writeJSON(SETTINGS_KEY, s);
+    try { localStorage.setItem(flag, '1'); } catch (_) {}
+  }
+
   var RYUTEN_GOLD = {
     borderColor:       '#e0a82e',  // kufiri i qelizës — theksi kryesor gold i ryuten
     borderGlow:        '#ffcb3d',
@@ -76,6 +87,7 @@
   }
 
   ensureSkinSettings();
+  ensureNameSettings();
   ensureRyutenTheme();
 
   /* Default new FFA host so deo finishUp does not overwrite the menu with eu.senpa.io:2001 */

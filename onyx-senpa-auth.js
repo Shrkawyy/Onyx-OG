@@ -327,6 +327,7 @@
 
     window.addEventListener('message', function (event) {
       if (event.origin !== AUTH_ORIGIN) return;
+      if (window.__ONYX_SECONDARY_AUTH_PENDING__) return;
       var data = event.data || {};
       if (data.type === 'senpa-auth-ready') {
         try { event.source && event.source.postMessage({ type: 'senpa-auth-hello' }, AUTH_ORIGIN); } catch (_) {}
