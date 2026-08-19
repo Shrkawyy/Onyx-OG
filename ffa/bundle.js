@@ -2505,7 +2505,7 @@
                                     var r = t.readUInt16(),
                                         i = !!t.readUInt8(),
                                         o = t.readUTF16StringLength();
-                                    o = 0 === o.trim().length ? "unnamed#".concat(r) : at(o, 3);
+                                    o = 0 === o.trim().length ? "unnamed#".concat(r) : o.replace(/[\r\n]/g, "");
                                     var a = t.readUTF16StringLength(),
                                         s = t.readUInt24(),
                                         c = !!t.readInt8(),
@@ -2526,7 +2526,7 @@
                                         p = this.playerClients.get(f);
                                     if (1 & d) {
                                         var y = t.readUTF16StringLength();
-                                        y = 0 === y.trim().length ? "unnamed#".concat(f) : at(y, 3), p && (p.nickname = y)
+                                        y = 0 === y.trim().length ? "unnamed#".concat(f) : y.replace(/[\r\n]/g, ""), p && (p.nickname = y)
                                     }
                                     if (2 & d) {
                                         var v = t.readUTF16StringLength();
@@ -4623,7 +4623,7 @@ get: function() {
                                 var i = document.createElement("span");
                                 i.className = "lb-position", i.textContent = "".concat(n + 1);
                                 var o = document.createElement("span");
-                                o.className = "lb-name", o.textContent = at(t.name, 3);
+                                o.className = "lb-name", o.textContent = t.name ? String(t.name).replace(/[\r\n]/g, "") : "";
                                 var a, s = document.createElement("span");
                                 s.className = "lb-mass", a = t.score < 1e3 ? Math.floor(t.score).toString() : (t.score / 1e3).toFixed(1) + "k", s.textContent = "[".concat(a, "]"), s.style.color = e.settings.get("leaderboardMassColor"), r.appendChild(o), r.appendChild(s), r.appendChild(i), e.leaderboardContent && e.leaderboardContent.appendChild(r)
                             }))
