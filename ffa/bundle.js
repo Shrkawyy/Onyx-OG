@@ -2486,14 +2486,20 @@
                             value: function() {
                                 var t = this,
                                     n = function() {
-                                        var e = "null";
+                                        var e = "null",
+                                            r = window.__JAXXV6_GET_CLIENT_TOKEN__,
+                                            i = null;
                                         try {
-                                            var n = localStorage.getItem("senpaio:session");
-                                            /^[\w-]+\.[\w-]+\.[\w-]+$/.test(n || "") && (e = n);
+                                            i = "function" == typeof r ? r(t) : null;
                                         } catch (_) {}
-                                        t.logger.log("[Auth] Sending session token: " + ("null" === e ? "none" : "present"));
-                                        var r = new W;
-                                        r.writeUInt8(13), r.writeUInt16(e.length), r.writeUTF16String(e), t.sendMessage(r)
+                                        if (null === i && "Secondary" !== t.type) try {
+                                            var n = localStorage.getItem("senpaio:session");
+                                            /^[\w-]+\.[\w-]+\.[\w-]+$/.test(n || "") && (i = n);
+                                        } catch (_) {}
+                                        /^[\w-]+\.[\w-]+\.[\w-]+$/.test(i || "") && (e = i);
+                                        t.logger.log("[Auth] Sending " + t.type + " session token: " + ("null" === e ? "none" : "present"));
+                                        var o = new W;
+                                        o.writeUInt8(13), o.writeUInt16(e.length), o.writeUTF16String(e), t.sendMessage(o)
                                     },
                                     r = window.__JAXXV6_SESSION_READY__;
                                 r && "function" == typeof r.then ? (t.logger.log("[Auth] Waiting for Senpa session refresh"), r.then(n, n)) : n()
@@ -2501,6 +2507,16 @@
                         }, {
                             key: "updatePlayerClients",
                             value: function(t) {
+                                var self = this,
+                                    syncNickname = function(clientId, nickname) {
+                                        self.players.forEach(function(player) {
+                                            if (player.clientId !== clientId) return;
+                                            for (var cellKey in self.cells) {
+                                                var cell = self.cells[cellKey];
+                                                cell && cell.playerId === player.playerId && (cell.nickname = nickname)
+                                            }
+                                        })
+                                    };
                                 for (var e = t.readUInt8(), n = 0; n < e; n++) {
                                     var r = t.readUInt16(),
                                         i = !!t.readUInt8(),
@@ -2518,7 +2534,7 @@
                                         colorInt: s,
                                         hasReservedName: c,
                                         clanTag: l
-                                    })
+                                    }), syncNickname(r, o)
                                 }
                                 for (var u = t.readUInt8(), h = 0; h < u; h++) {
                                     var f = t.readUInt16(),
@@ -2526,7 +2542,7 @@
                                         p = this.playerClients.get(f);
                                     if (1 & d) {
                                         var y = t.readUTF16StringLength();
-                                        y = 0 === y.trim().length ? "unnamed#".concat(f) : y.replace(/[\r\n]/g, ""), p && (p.nickname = y)
+                                        y = 0 === y.trim().length ? "unnamed#".concat(f) : y.replace(/[\r\n]/g, ""), p && (p.nickname = y), syncNickname(f, y)
                                     }
                                     if (2 & d) {
                                         var v = t.readUTF16StringLength();
@@ -2628,7 +2644,7 @@
                                             v = t.readUInt24(),
                                             g = this.players.get(y);
                                         if (!g) continue;
-                                        l.playerId = y, l.colorInt = v, l.colorHex = ot.temp.fromINT(v).getHEX(), l.skin = g.skin, l.nickname = g.playerClient.nickname, l.clientOrigin = this.findClientOrigin(g.clientId), p = this.playerIds.indexOf(y) !== -1
+                                        l.playerId = y, l.colorInt = v, l.colorHex = ot.temp.fromINT(v).getHEX(), l.skin = g.skin, l.nickname = g.playerClient.nickname || g.playerClient.name || "unnamed#".concat(y), l.clientOrigin = this.findClientOrigin(g.clientId), p = this.playerIds.indexOf(y) !== -1
                                     }
                                     if (1 === d && (l.flags.isVirus = !0), 2 === d && (l.flags.isEject = !0, l.colorInt = t.readUInt24(), l.colorHex = ot.temp.fromINT(l.colorInt).getHEX()), 3 === d && (l.flags.isFood = !0, l.colorHex = ot.temp.fromHSL(((l.id % 360 << 314159) + l.id % 33) % 360, 100, 51).getHEX()), 5 === d) {
                                         for (var m = t.readUInt16(), b = new Uint8Array(m), w = 0; w < m; w++) b[w] = t.readUInt8();
@@ -4093,8 +4109,20 @@ get: function() {
                             var t = this,
                                 e = this.app.dualConnectionHandler.current,
                                 n = this.app.dualConnectionHandler.primary,
-                                r = this.app.dualConnectionHandler.secondary,
-                                i = this.app.dualConnectionHandler.totalPlaying,
+                                r = this.app.dualConnectionHandler.secondary;
+                            if (!r && n && 0 === this.app.player.pendingConnections.length && "function" == typeof window.__JAXXV6_ENSURE_SECONDARY_AUTH__) {
+                                var i = this;
+                                return window.__JAXXV6_ENSURE_SECONDARY_AUTH__().then(function(e) {
+                                    if (!e) return;
+                                    var n = i.initClient(i.app.player.serverUrl);
+                                    n && n.events.once("ready", function() {
+                                        n.sendSpawn(), n.events.once("spawned", function() {
+                                            return i.app.dualConnectionHandler.setActive(n)
+                                        })
+                                    })
+                                })
+                            }
+                            var i = this.app.dualConnectionHandler.totalPlaying,
                                 o = this.app.settings.get("autoSwitch");
                             if (n || 0 !== this.app.player.pendingConnections.length) {
                                 if (n) {
@@ -10533,7 +10561,7 @@ value: function(t, e) {
                                         colorInt: s,
                                         hasReservedName: c,
                                         clanTag: l
-                                    })
+                                    }), syncNickname(r, o)
                                 }
                                 for (var u = t.readUInt8(), h = 0; h < u; h++) {
                                     var f = t.readUInt16(),

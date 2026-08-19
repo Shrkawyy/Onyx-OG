@@ -40,13 +40,17 @@
     return 'unknown';
   }
 
-  function tokenPresent() {
+  function tokenPresent(client) {
     try {
-      var t = localStorage.getItem('senpaio:session') || localStorage.getItem('senpa_auth_token') || '';
-      return /^[\w-]+\.[\w-]+\.[\w-]+$/.test(t);
-    } catch (_) {
-      return false;
-    }
+      var getter = window.__JAXXV6_GET_CLIENT_TOKEN__;
+      var t = typeof getter === 'function' ? getter(client) : null;
+      if (t) return /^[\w-]+\.[\w-]+\.[\w-]+$/.test(t);
+      if (!client || client.type !== 'Secondary') {
+        t = localStorage.getItem('senpaio:session') || localStorage.getItem('senpa_auth_token') || '';
+        return /^[\w-]+\.[\w-]+\.[\w-]+$/.test(t);
+      }
+    } catch (_) {}
+    return false;
   }
 
   function hookClient(client) {
@@ -57,7 +61,7 @@
     if (origSendAuth) {
       client.sendAuth = function () {
         phase = 'HANDSHAKE';
-        if (!tokenPresent()) fail('TOKEN_MISSING', 'sendAuth: senpaio:session is not a JWT');
+        if (!tokenPresent(client)) fail('TOKEN_MISSING', 'sendAuth: senpaio:session is not a JWT');
         else log('Sending handshake');
         return origSendAuth();
       };
