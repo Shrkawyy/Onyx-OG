@@ -1,6 +1,10 @@
 # JaxxV6
 
-JaxxV6 is a GitHub Pages-hosted Tampermonkey build of the custom Senpa client. The userscript runs at `https://senpa.io/web/`, loads the static client from GitHub Pages, and connects directly to `wss://eu1.senpa.io:2053`.
+JaxxV6 is a GitHub Pages-hosted Tampermonkey build of the custom Senpa client. The userscript runs at `https://senpa.io/web/`, loads the static client from GitHub Pages, and connects directly to the current Senpa WebSocket endpoints. Release `6.1.11` includes the name-display compatibility fix for the current Senpa `v4.0.0` client: player names are no longer truncated by the old repeated-character sanitizer, while CR/LF control characters are removed before rendering.
+
+## Release 6.1.11
+
+The current official tracker reports the FFA server as `eu1.senpa.io:7101` (`Nemesis`) with protocol/client version `4.0.0`. This release keeps the existing direct-connection design and updates only name normalization and cache-busting metadata.
 
 ## Publish
 
