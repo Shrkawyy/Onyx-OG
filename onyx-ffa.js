@@ -252,12 +252,14 @@
     return true;
   }
 
-  function openSenpaLogin() {
+  function openSenpaLogin(provider) {
+    provider = provider === 'facebook' ? 'facebook' : 'discord';
+    var label = provider === 'facebook' ? 'Facebook' : 'Discord';
     log('Starting authentication');
     toast('Opening Senpa login…');
     var popup = window.open(
-      AUTH_ORIGIN + '/auth/discord',
-      'Senpa Discord Login',
+      AUTH_ORIGIN + '/auth/' + provider,
+      'Senpa ' + label + ' Login',
       'toolbar=no,menubar=no,width=600,height=700,top=100,left=100'
     );
     if (!popup) {
@@ -278,7 +280,7 @@
         resolve(existing);
         return;
       }
-      openSenpaLogin();
+      openSenpaLogin('discord');
       var timer = setTimeout(function () {
         cleanup();
         var problem = tokenProblem() || 'AUTH_REQUIRED';
