@@ -13,12 +13,6 @@
   var NEW_FFA_HOST = 'eu1.senpa.io:7101';
   var NEW_FFA_IDS = { 'ffa-eu': 1, 'eu1.senpa.io:7101': 1 };
   var TID_KEY = 'kateronyx:senpa-tid';
-  var SECONDARY_SESSION_KEY = 'senpaio:session:secondary';
-  var AUTH_ORIGIN = 'https://api.senpa.io';
-  var secondaryStarted = false;
-  var secondaryPending = false;
-  var secondaryAuthPending = false;
-  var secondaryAuthOverlay = null;
   var LEGACY_SUFFIX = '?password=';
 
   var cellInLog = 0;
@@ -111,14 +105,7 @@
     return 'wss://' + host + LEGACY_SUFFIX;
   }
 
-  function readJwt(tab) {
-    if ((tab || 1) === 2) {
-      try {
-        var secondary = localStorage.getItem(SECONDARY_SESSION_KEY) || '';
-        if (secondary && secondary.split('.').length >= 3) return secondary;
-      } catch (_) {}
-      return 'null';
-    }
+  function readJwt() {
     if (global.ONYXAuth && typeof global.ONYXAuth.getSenpaToken === 'function') {
       var t = global.ONYXAuth.getSenpaToken();
       if (t) return String(t);
@@ -286,102 +273,6 @@
     return false;
   }
 
-  function isJwtLike(token) {
-    return /^[\w-]+\.[\w-]+\.[\w-]+$/.test(String(token || ''));
-  }
-
-  function secondaryTokenPresent() {
-    try { return isJwtLike(localStorage.getItem(SECONDARY_SESSION_KEY) || ''); } catch (_) { return false; }
-  }
-
-  function closeSecondaryAuthOverlay() {
-    secondaryAuthPending = false;
-    global.__ONYX_SECONDARY_AUTH_PENDING__ = false;
-    if (secondaryAuthOverlay && secondaryAuthOverlay.parentNode) secondaryAuthOverlay.parentNode.removeChild(secondaryAuthOverlay);
-    secondaryAuthOverlay = null;
-  }
-
-  function startSecondary(sc) {
-    if (secondaryStarted || secondaryPending) return;
-    if (!sc || !sc.Tab1) {
-      log('CONNECT', 'Tab pressed before Tab 1 is ready; keeping Secondary closed');
-      return;
-    }
-    if (!secondaryTokenPresent()) {
-      requestSecondaryAuth(sc);
-      return;
-    }
-    secondaryPending = true;
-    try {
-      sc.init(lastConnectHost || NEW_FFA_HOST, 2);
-    } catch (err) {
-      secondaryPending = false;
-      log('CONNECT', 'tab=2 start failed — ' + (err && err.message || err));
-    }
-  }
-
-  function requestSecondaryAuth(sc) {
-    if (secondaryAuthPending) return;
-    secondaryAuthPending = true;
-    global.__ONYX_SECONDARY_AUTH_PENDING__ = true;
-    var overlay = document.createElement('div');
-    overlay.id = 'onyx-secondary-auth-overlay';
-    overlay.innerHTML = '<div class="onyx-secondary-auth-card" role="dialog" aria-modal="true">' +
-      '<h2>Login for Secondary Bot</h2>' +
-      '<p id="onyx-secondary-auth-status">Choose a separate Facebook or Discord account for Tab 2.</p>' +
-      '<div class="onyx-secondary-auth-actions"><button type="button" data-provider="discord">Login with Discord</button><button type="button" data-provider="facebook">Login with Facebook</button></div>' +
-      '<button type="button" data-cancel class="onyx-secondary-auth-cancel">Cancel</button></div>';
-    var style = document.createElement('style');
-    style.textContent = '#onyx-secondary-auth-overlay{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:rgba(0,0,0,.76);font:16px system-ui,sans-serif;color:#eef4ff}#onyx-secondary-auth-overlay .onyx-secondary-auth-card{width:min(92vw,440px);padding:24px;border:1px solid #d39d2e;border-radius:14px;background:#111318;box-shadow:0 18px 70px #000;text-align:center}#onyx-secondary-auth-overlay h2{margin:0 0 10px}#onyx-secondary-auth-overlay p{color:#c8d5e6;line-height:1.45}#onyx-secondary-auth-overlay button{border:0;border-radius:8px;padding:11px 15px;margin:4px;cursor:pointer;color:#fff;background:#5865f2;font-weight:700}#onyx-secondary-auth-overlay button[data-provider="facebook"]{background:#1877f2}#onyx-secondary-auth-overlay .onyx-secondary-auth-cancel{background:#3a4655;font-weight:500}';
-    overlay.appendChild(style);
-    document.body.appendChild(overlay);
-    secondaryAuthOverlay = overlay;
-    function openProvider(provider) {
-      var popup = window.open(AUTH_ORIGIN + (provider === 'facebook' ? '/auth/facebook' : '/auth/discord'), 'Onyx Secondary Login', 'toolbar=no,menubar=no,width=600,height=700,top=100,left=100');
-      var status = overlay.querySelector('#onyx-secondary-auth-status');
-      if (!popup) { if (status) status.textContent = 'Popup blocked. Allow popups, then try again.'; return; }
-      if (status) status.textContent = 'Finish the second account login in the popup, then return here.';
-      try { popup.focus(); } catch (_) {}
-    }
-    overlay.querySelectorAll('[data-provider]').forEach(function (button) {
-      button.addEventListener('click', function () { openProvider(button.getAttribute('data-provider')); });
-    });
-    overlay.querySelector('[data-cancel]').addEventListener('click', function () { closeSecondaryAuthOverlay(); });
-  }
-
-  function onSecondaryAuthMessage(event) {
-    if (!secondaryAuthPending || event.origin !== AUTH_ORIGIN) return;
-    var data = event.data || {};
-    if (data.type === 'senpa-auth-ready') {
-      try { event.source && event.source.postMessage({ type: 'senpa-auth-hello' }, AUTH_ORIGIN); } catch (_) {}
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      return;
-    }
-    var token = data.access_token || data.token;
-    if (!token || !isJwtLike(token)) return;
-    try { localStorage.setItem(SECONDARY_SESSION_KEY, String(token)); } catch (_) { return; }
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    closeSecondaryAuthOverlay();
-    startSecondary(global.SC);
-  }
-
-  function bindSecondaryTab(sc) {
-    if (document.__onyxSecondaryTabBound) return;
-    document.__onyxSecondaryTabBound = true;
-    window.addEventListener('message', onSecondaryAuthMessage, true);
-    document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Tab' || event.ctrlKey || event.altKey || event.metaKey) return;
-      if (secondaryStarted || secondaryPending) return;
-      if (!sc || !sc.Tab1 || sc.Tab2) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      startSecondary(sc);
-    }, true);
-    log('CONNECT', 'Secondary gate bound to first Tab');
-  }
-
   function hookSC() {
     var sc = global.SC;
     if (!sc || hooked) return !!hooked;
@@ -401,11 +292,6 @@
       cellOutLog = 0;
       syncFfaType();
       tab = tab || 1;
-      if (tab === 2 && !secondaryPending && !secondaryStarted && isNewFfaHost(mapped)) {
-        log('CONNECT', 'blocked unsolicited tab=2; waiting for explicit Tab and Secondary login');
-        requestSecondaryAuth(sc);
-        return;
-      }
       if (isNewFfaHost(mapped)) {
         log('CONNECT', 'host=' + mapped + ' tab=' + tab + ' url=' + wsUrl(mapped).replace(/([?&]tid=)[a-f0-9]+/i, '$1***'));
         log('ONYX-ENGINE', 'SC.init → deo WASM create() (single runtime)');
@@ -416,21 +302,38 @@
         var result = origInit(mapped, tab);
       } catch (err) {
         if (tab === 2) {
-          secondaryPending = false;
-          secondaryStarted = false;
           log('CONNECT', 'tab=2 create failed — ' + (err && err.message || err));
           return;
         }
         throw err;
       }
-      if (tab === 1 && isNewFfaHost(mapped)) {
-        if (wasmWaitTimer) { clearInterval(wasmWaitTimer); wasmWaitTimer = null; }
-        log('CONNECT', 'tab=1 only — tab=2 waits for first Tab and Secondary login');
-      }
-      if ((tab || 1) === 2) {
-        secondaryPending = false;
-        secondaryStarted = true;
-        log('CONNECT', 'tab=2 started by explicit Tab action');
+      if (tab === 1 && isNewFfaHost(mapped) && typeof origInit === 'function') {
+        if (wasmWaitTimer) clearInterval(wasmWaitTimer);
+        var n = 0;
+        log('CONNECT', 'waiting for deo WASM create() then tab=2');
+        wasmWaitTimer = setInterval(function () {
+          n++;
+          if (sc.Tab1) {
+            if (!sc.Tab2) {
+              try { origInit(mapped, 2); } catch (err) {
+                log('CONNECT', 'tab=2 retry — ' + (err && err.message || err));
+              }
+            }
+            if (sc.Tab2 || n > 40) {
+              clearInterval(wasmWaitTimer);
+              wasmWaitTimer = null;
+              log('CONNECT', sc.Tab2 ? 'tab=1 and tab=2 connected' : 'tab=2 still missing after wait (tab=1 kept)');
+            }
+            return;
+          }
+          if (n > 40) {
+            clearInterval(wasmWaitTimer);
+            wasmWaitTimer = null;
+            log('CONNECT', 'wasm create() still missing after wait');
+            return;
+          }
+          try { origInit(mapped, 1); } catch (_) {}
+        }, 250);
       }
       return result;
     };
@@ -439,7 +342,7 @@
       var u8 = toU8(buf);
       if (u8 && u8.length && isNewFfaHost(lastConnectHost || selectedRaw())) {
         if (u8[0] === 0x0d) {
-          var jwt = readJwt(tab);
+          var jwt = readJwt();
           buf = buildAuthPacket(jwt);
           u8 = toU8(buf);
           if (jwt === 'null' && !jwtNullWarned) {
@@ -479,7 +382,6 @@
     if (origOnClose) {
       sc.onClose = function (tab) {
         log('DISCONNECT', 'tab=' + (tab || 1));
-        if ((tab || 1) === 2) { secondaryStarted = false; secondaryPending = false; }
         spectateSent = false;
         return origOnClose(tab);
       };
@@ -493,7 +395,6 @@
     }
 
     hooked = true;
-    bindSecondaryTab(sc);
     log('ONYX-ENGINE', 'adapter wrapped SC.init/send/onMessage');
     syncFfaType();
     return true;
