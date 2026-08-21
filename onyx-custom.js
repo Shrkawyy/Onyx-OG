@@ -31,27 +31,48 @@
     try { localStorage.setItem(key, JSON.stringify(obj)); } catch (e) {}
   }
 
-  /* 1) Skinet e të gjithëve + URL skins = ON */
+  /* 1) Skinet e të gjithëve + URL skins = ON
+     Multibox Cell Color = ON që ngjyra e picker-it të shkojë te qeliza e botit. */
   function ensureSkinSettings() {
     var s = readJSON(SETTINGS_KEY);
     var changed = false;
     if (s.everyoneSkins !== 'on') { s.everyoneSkins = 'on'; changed = true; }
     if (s.urlSkins !== 'on') { s.urlSkins = 'on'; changed = true; }
+    if (s.multiboxCellColor !== 'on') { s.multiboxCellColor = 'on'; changed = true; }
     if (changed) writeJSON(SETTINGS_KEY, s);
   }
 
-  /* 2) Paleta GOLD/amber e ryuten për pamjen in-game (çelësat = id-të e theme-it) */
-  /* Show nicknames after the server/client update; preserve all other settings. */
-  function ensureNameSettings() {
-    var flag = PREFIX + 'nameVisibilityV1';
-    try { if (localStorage.getItem(flag) === '1') return; } catch (_) {}
-    var s = readJSON(SETTINGS_KEY);
-    s.hideOwnNick = 'off';
-    s.autoHideText = 'off';
-    writeJSON(SETTINGS_KEY, s);
-    try { localStorage.setItem(flag, '1'); } catch (_) {}
+  /* Picker-at e MultiBox duhet të jenë <input> të pastër PARA motorit.
+     HTML-ja e ruajtur kishte widget minicolors të ngrirë — ndryshimi i ngjyrës
+     nuk i shkonte saveTheme, prandaj boti mbante ngjyrën e vjetër. */
+  function unwrapMultiboxPickers() {
+    ['multiboxActive', 'multiboxInactive'].forEach(function (id) {
+      var input = document.getElementById(id);
+      if (!input) return;
+      var options = input.closest ? input.closest('.theme-options') : null;
+      if (!options) {
+        var p = input.parentNode;
+        while (p && p !== document.body) {
+          if (p.classList && p.classList.contains('theme-options')) { options = p; break; }
+          p = p.parentNode;
+        }
+      }
+      if (!options) return;
+      var nested = options.querySelector('.minicolors-panel') || options.querySelector('.minicolors-swatch');
+      if (!nested && options.children.length === 1 && input.tagName === 'INPUT') return;
+      var opacity = input.getAttribute('opacity') || '0';
+      var val = input.value || '';
+      options.innerHTML = '';
+      var fresh = document.createElement('input');
+      fresh.id = id;
+      fresh.setAttribute('opacity', opacity);
+      if (val) fresh.value = val;
+      options.appendChild(fresh);
+    });
   }
+  unwrapMultiboxPickers();
 
+  /* 2) Paleta GOLD/amber e ryuten për pamjen in-game (çelësat = id-të e theme-it) */
   var RYUTEN_GOLD = {
     borderColor:       '#e0a82e',  // kufiri i qelizës — theksi kryesor gold i ryuten
     borderGlow:        '#ffcb3d',
@@ -68,8 +89,6 @@
     backgroundColor:   '#0e0e12',  // sfond i errët si ryuten
     waveColor:         '#e0a82e',
     cursorLineColor:   '#e0a82e',
-    multiboxActive:    '#e0a82e',  // njësia aktive — unazë gold (theksi i multibox-it)
-    multiboxInactive:  '#6b5a2e',  // njësitë joaktive — gold i zbehtë
     selfColor:         '#e0a82e',  // vetja në minimap — gold
     selfViewportColor: '#e0a82e',
     teammateNameColor: '#ffcb3d',
@@ -87,7 +106,6 @@
   }
 
   ensureSkinSettings();
-  ensureNameSettings();
   ensureRyutenTheme();
 
   /* Default new FFA host so deo finishUp does not overwrite the menu with eu.senpa.io:2001 */

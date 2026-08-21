@@ -1826,9 +1826,20 @@ var _0x33c02e = _0x400f;
                             _0x11985e = _0x1d2e66[_0x54dd69(0x898)](),
                             _0x928a8b = _0x1d2e66[_0x54dd69(0x898)](),
                             _0x2e66a5 = _0x48bdbc[_0x54dd69(0x3e6)](_0x49d2da, _0x11985e, _0x928a8b),
-                            _0x5a41dd = _0x1d2e66[_0x54dd69(0x428)](),
-                            _0x3e7fcb = new _0x22e253(_0x284af3, _0xc70886, _0x2e66a5, _0x5a41dd, _0x49d2da, _0x11985e, _0x928a8b);
+                            _0x5a41dd = _0x1d2e66[_0x54dd69(0x428)]();
+                        _0x1d2e66['readUInt32']();
+                        const _0x3e7fcb = new _0x22e253(_0x284af3, _0xc70886, _0x2e66a5, _0x5a41dd, _0x49d2da, _0x11985e, _0x928a8b);
                         _0x3b5e3c[_0x54dd69(0x480)][_0x54dd69(0x7d4)](_0x284af3, _0x3e7fcb);
+                        if (_0xc70886 === _0x3b5e3c['myClientID'] && _0x3b5e3c['myClientID'] > 0x0) {
+                            var _0xid1 = _0x3b5e3c[_0x54dd69(0x8c2)];
+                            _0xid1 && (typeof _0xid1['add'] === 'function' ? _0xid1['add'](_0x284af3) : _0xid1['indexOf'] && _0xid1['indexOf'](_0x284af3) < 0x0 && _0xid1['push'](_0x284af3));
+                            _0x1b521e[_0x54dd69(0x518)] = _0x284af3;
+                        }
+                        if (_0xc70886 === _0x3b5e3c[_0x54dd69(0x673)] && _0x3b5e3c[_0x54dd69(0x673)] > 0x0) {
+                            var _0xid2 = _0x3b5e3c[_0x54dd69(0x24b)];
+                            _0xid2 && (typeof _0xid2['add'] === 'function' ? _0xid2['add'](_0x284af3) : _0xid2['indexOf'] && _0xid2['indexOf'](_0x284af3) < 0x0 && _0xid2['push'](_0x284af3));
+                            _0x1b521e[_0x54dd69(0x5f4)] = _0x284af3;
+                        }
                     }
                     const _0x1ad3a2 = _0x1d2e66[_0x54dd69(0x898)]();
                     for (let _0x573232 = 0x0; _0x573232 < _0x1ad3a2; _0x573232++) {
@@ -1842,6 +1853,7 @@ var _0x33c02e = _0x400f;
                             _0x1194eb[_0x54dd69(0x6f9)] = _0x48bdbc[_0x54dd69(0x3e6)](_0x5a4ac6, _0x361f05, _0x24e4f1);
                         }
                         _0x65cc73 & 0x2 && (_0x1194eb[_0x54dd69(0x4bd)] = _0x1d2e66[_0x54dd69(0x428)]());
+                        _0x65cc73 & 0x4 && _0x1d2e66['readUInt32']();
                     }
                     const _0x88b728 = _0x1d2e66[_0x54dd69(0x898)]();
                     for (let _0x4f4144 = 0x0; _0x4f4144 < _0x88b728; _0x4f4144++) {
@@ -1894,17 +1906,13 @@ var _0x33c02e = _0x400f;
                                 _0x2ae446 === 0x1 ? (_0x446f71[_0x23b727(0x76d)] = !![], _0x446f71['auth'](_0x2ae446)) : (_0x446f71[_0x23b727(0x8d9)] = !![], _0x446f71[_0x23b727(0x924)](_0x2ae446));
                                 break;
                             case 0xa:
-                                if (_0x2ae446 === 0x1) {
-                                    try { _0x35776a['handle'](_0x105f50); } catch (_0xop10err) {
-                                        console.warn('[NEW-SERVER] [DECODE] opcode=10 updatePlayerClients', _0xop10err && _0xop10err.message || _0xop10err);
-                                    }
+                                try { _0x35776a['handle'](_0x105f50); } catch (_0xop10err) {
+                                    console.warn('[NEW-SERVER] [DECODE] opcode=10 updatePlayerClients', _0xop10err && _0xop10err.message || _0xop10err);
                                 }
                                 break;
                             case 0xb:
-                                if (_0x2ae446 === 0x1) {
-                                    try { _0x1c77f5[_0x23b727(0x536)](_0x105f50); } catch (_0xop11err) {
-                                        console.warn('[NEW-SERVER] [DECODE] opcode=11 updatePlayers', _0xop11err && _0xop11err.message || _0xop11err);
-                                    }
+                                try { _0x1c77f5[_0x23b727(0x536)](_0x105f50); } catch (_0xop11err) {
+                                    console.warn('[NEW-SERVER] [DECODE] opcode=11 updatePlayers', _0xop11err && _0xop11err.message || _0xop11err);
                                 }
                                 break;
                             case 0x14:
@@ -2058,7 +2066,9 @@ var _0x33c02e = _0x400f;
                     'value': function (_0x3a4a1a, _0x1d576c) {
                         var _0x582c3b = _0x1e03f1;
                         const _0x57e0db = _0x3a4a1a[_0x582c3b(0x4ce)]();
-                        _0x122508['update'](_0x1d576c, 0x0, 0x0, _0x57e0db, _0x57e0db), _0x3a4a1a[_0x582c3b(0x4cd)]();
+                        _0x122508['update'](_0x1d576c, 0x0, 0x0, _0x57e0db, _0x57e0db);
+                        var _0xownCid = _0x3a4a1a[_0x582c3b(0x4cd)]();
+                        0x1 === _0x1d576c ? _0x3b5e3c['myClientID'] = _0xownCid : _0x3b5e3c[_0x582c3b(0x673)] = _0xownCid;
                         const _0x2f9d12 = _0x3a4a1a[_0x582c3b(0x898)]();
                         var _0x1386bc = 0x1 === _0x1d576c ? _0x3b5e3c[_0x582c3b(0x8c2)] : _0x3b5e3c[_0x582c3b(0x24b)];
                         for (let _0x2ff468 = 0x0; _0x2ff468 < _0x2f9d12; _0x2ff468++) {
@@ -3209,13 +3219,14 @@ var _0x33c02e = _0x400f;
                         'key': _0xbb4807(0x2c1),
                         'get': function () {
                             var _0x3d607a = _0xbb4807;
+                            if (this[_0x3d607a(0x291)] || this[_0x3d607a(0x8fa)] === 0x1 || this[_0x3d607a(0x8fa)] === 0x2) return !0x0;
                             var _0x1dTab = _0x3b5e3c[_0x3d607a(0x8c2)],
                                 _0x2dTab = _0x3b5e3c[_0x3d607a(0x24b)],
-                                _0xownId = this[_0x3d607a(0x7aa)]['id'],
-                                _0xidHas = function (_0xlist) {
-                                    return !_0xlist ? ![] : typeof _0xlist['has'] === 'function' ? _0xlist['has'](_0xownId) : _0xlist[_0x3d607a(0x61d)](_0xownId) > -0x1;
-                                };
-                            if (!_0x225b15[_0x3d607a(0x3ae)]) return _0xidHas(_0x1dTab);
+                                _0xownId = this[_0x3d607a(0x29a)];
+                            if (!(_0xownId > 0x0) && this[_0x3d607a(0x7aa)]) _0xownId = this[_0x3d607a(0x7aa)]['id'];
+                            var _0xidHas = function (_0xlist) {
+                                return !_0xlist || !(_0xownId > 0x0) ? ![] : typeof _0xlist['has'] === 'function' ? _0xlist['has'](_0xownId) : typeof _0xlist['indexOf'] === 'function' && _0xlist[_0x3d607a(0x61d)](_0xownId) > -0x1;
+                            };
                             return _0xidHas(_0x1dTab) || _0xidHas(_0x2dTab);
                         }
                     }, {
@@ -3296,8 +3307,16 @@ var _0x33c02e = _0x400f;
                         'value': function (_0x95b45, _0xd101ac, _0x48e556) {
                             var _0x28e0be = _0x48fcb4,
                                 _0x9cc340 = 0x1 === _0x48e556 ? this[_0x28e0be(0x8c2)] : this[_0x28e0be(0x24b)],
-                                _0x50d654 = 0x1 === _0x48e556 ? this[_0x28e0be(0x80e)] : this['myCellsTab2'];
-                            _0x9cc340[_0x28e0be(0x7ac)](_0xd101ac[_0x28e0be(0x29a)]) && (_0x50d654[_0x28e0be(0x7d4)](_0x95b45, _0xd101ac), _0x9cc340['delete'](_0x95b45), _0xd101ac[_0x28e0be(0x291)] = !0x0, _0xd101ac[_0x28e0be(0x8fa)] = _0x48e556);
+                                _0x50d654 = 0x1 === _0x48e556 ? this[_0x28e0be(0x80e)] : this['myCellsTab2'],
+                                _0xpid = _0xd101ac[_0x28e0be(0x29a)],
+                                _0xownPid = 0x1 === _0x48e556 ? _0x1b521e[_0x28e0be(0x518)] : _0x1b521e[_0x28e0be(0x5f4)],
+                                _0xfound = ![];
+                            if (_0x9cc340) {
+                                if (typeof _0x9cc340['has'] === 'function') _0xfound = _0x9cc340['has'](_0xpid);
+                                else if (typeof _0x9cc340['indexOf'] === 'function') _0xfound = _0x9cc340['indexOf'](_0xpid) > -0x1;
+                            }
+                            if (!_0xfound && _0xownPid > 0x0 && _0xpid === _0xownPid) _0xfound = !0x0;
+                            _0xfound && (_0x50d654[_0x28e0be(0x7d4)](_0x95b45, _0xd101ac), _0xd101ac[_0x28e0be(0x291)] = !0x0, _0xd101ac[_0x28e0be(0x8fa)] = _0x48e556);
                         }
                     }, {
                         'key': _0x48fcb4(0x853),
